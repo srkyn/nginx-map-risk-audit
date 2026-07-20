@@ -8,6 +8,8 @@ This CVE matters because some older NGINX versions can handle a specific kind of
 
 This project is intentionally safe: it does not include exploit traffic, crash payloads, or production probing. The goal is to show how I would triage exposure, explain the risk, and hand defenders a repeatable validation path.
 
+![Scanner demo](docs/demo.gif)
+
 ## Why This Matters
 
 NGINX lists the issue as a major security advisory: vulnerable versions are `0.9.6-1.31.2`, fixed versions are `1.30.4+` and `1.31.3+`. The NGINX changelog describes a heap buffer overflow in a worker process when a `map` directive uses regex matching and the map variable is included in a string expression after a capture affected by that map.
@@ -25,10 +27,25 @@ Defenders should answer four questions before treating an NGINX deployment as ex
 
 If those words are new: a worker is the NGINX process handling requests. A crash loop or restart signal means the process may be failing and starting again. A distro backport means Linux vendors sometimes patch an older-looking version without changing the version number to the newest upstream release.
 
+## Workflow At A Glance
+
+```mermaid
+flowchart LR
+    advisory["Read advisory and changelog"] --> version["Check NGINX version"]
+    version --> config["Review active config"]
+    config --> scanner["Run safe map-pattern scanner"]
+    scanner --> validate["Validate fixed build or vendor patch"]
+    validate --> hunt["Hunt restart and diagnostic signals"]
+    hunt --> remediate["Patch, reload, and document"]
+```
+
 ## Repository Contents
 
 - `scripts/audit_nginx_map_risk.py`  
   A defensive heuristic scanner for NGINX config files. It looks for regex `map` blocks, captures, and later string expressions that reference captures and map outputs. It does not prove a server is exploitable. It finds configs worth a human review.
+
+- `scripts/render_demo_gif.py`  
+  Rebuilds the small README demo GIF from real scanner output.
 
 - `detections/splunk_nginx_cve_2026_42533.spl`  
   Splunk searches for version inventory, crash/restart symptoms, and post-patch diagnostic strings.
