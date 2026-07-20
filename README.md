@@ -71,12 +71,6 @@ python .\scripts\self_check.py
 6. Restart or reload workers and confirm the fixed binary is actually running.
 7. Monitor for worker restarts, request spikes, and `no buffer space in script copy` after patching.
 
-## Notes For Interview Discussion
-
-This is a good example of why vulnerability management is not only "is version less than fixed version." A version check finds candidate exposure, but the real risk depends on active configuration, reachable request paths, process hardening, and whether the patched workers are actually in memory.
-
-The simple way I would explain it in an interview: NGINX is like traffic control for a website. This bug is tied to a specific traffic-control rule pattern. My project checks whether that pattern exists, shows how to validate a patched build, and gives defenders log searches to look for symptoms. It is not an exploit project. It is a safe exposure-review and detection project.
-
 ## Sources
 
 - NGINX security advisory page: https://nginx.org/en/security_advisories.html
