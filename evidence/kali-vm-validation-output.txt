@@ -1,0 +1,11 @@
+== Kali VM validation ==
+2026-07-19T21:14:27-04:00
+kali
+kali
+    inet 192.168.112.128/24 brd 192.168.112.255 scope global dynamic noprefixroute eth0
+Python 3.13.14
+
+== scanner against lab config ==
+[review] /tmp/nginx-cve-2026-42533/lab/nginx-windows.conf:12 map output $client_family
+  regex map lines: 13
+  possible capture/map expression at line 22: proxy_set_header X-Client-Family "$family $client_family";

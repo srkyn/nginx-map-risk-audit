@@ -1,0 +1,20 @@
+`comment("CVE-2026-42533 defensive searches. Tune indexes/sourcetypes to your environment.")`
+
+`comment("1. Post-patch diagnostic string. This can indicate a blocked copy that did not fit the predicted buffer.")`
+index=* (sourcetype=nginx:error OR source="*error.log*")
+"no buffer space in script copy"
+| stats count min(_time) as first_seen max(_time) as last_seen values(host) as hosts by source
+| convert ctime(first_seen) ctime(last_seen)
+
+`comment("2. Worker crash/restart symptoms around NGINX.")`
+index=* ("nginx" OR "nginx: worker")
+("exited on signal" OR "worker process" OR "segmentation fault" OR "core dumped" OR "signal 11")
+| bucket _time span=15m
+| stats count values(source) as sources values(host) as hosts by _time
+| where count > 2
+
+`comment("3. Version inventory candidates. Pair with package/vendor backport checks.")`
+index=* ("nginx version:" OR "nginx/")
+| rex field=_raw "nginx/(?<nginx_version>[0-9]+\\.[0-9]+\\.[0-9]+)"
+| stats latest(_time) as last_seen values(host) as hosts by nginx_version
+| convert ctime(last_seen)

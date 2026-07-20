@@ -1,0 +1,4 @@
+tools/
+evidence/screenshots/
+__pycache__/
+*.pyc

@@ -1,0 +1,24 @@
+// CVE-2026-42533 hunting notes for environments forwarding Linux process and log data.
+// Field names vary by connector. Treat these as starting points, not drop-in universal detections.
+
+// 1. NGINX worker crash symptoms in syslog-style telemetry.
+DeviceEvents
+| where Timestamp > ago(14d)
+| where AdditionalFields has_any ("nginx", "worker process", "segmentation fault", "core dumped", "signal 11")
+| summarize Count=count(), FirstSeen=min(Timestamp), LastSeen=max(Timestamp) by DeviceName, ActionType
+| where Count > 2
+
+// 2. Post-patch diagnostic text if NGINX error logs are ingested.
+DeviceFileEvents
+| where Timestamp > ago(14d)
+| where FileName has "error.log"
+| where AdditionalFields has "no buffer space in script copy"
+| project Timestamp, DeviceName, FolderPath, FileName, AdditionalFields
+
+// 3. Config review lead: recently modified NGINX config files.
+DeviceFileEvents
+| where Timestamp > ago(30d)
+| where FolderPath has "/nginx"
+| where FileName endswith ".conf"
+| where ActionType in ("FileCreated", "FileModified")
+| project Timestamp, DeviceName, ActionType, FolderPath, FileName, InitiatingProcessFileName
