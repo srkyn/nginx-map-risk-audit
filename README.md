@@ -2,6 +2,10 @@
 
 Defensive research note on CVE-2026-42533, a heap buffer overflow in NGINX request processing tied to `map` directives with regex captures and certain variable evaluation patterns.
 
+In plain English: NGINX is web server and reverse proxy software. It often sits in front of websites and APIs, accepts web requests, and decides where to send them. A `map` rule is an NGINX config feature that says "if this request value looks like X, set this variable to Y." Regex captures are the pieces of text pulled out of a pattern match.
+
+This CVE matters because some older NGINX versions can handle a specific kind of `map` and variable-combination pattern incorrectly. That does not mean every NGINX server is exposed. The version matters, but the active config matters too.
+
 This project is intentionally safe: it does not include exploit traffic, crash payloads, or production probing. The goal is to show how I would triage exposure, explain the risk, and hand defenders a repeatable validation path.
 
 ## Why This Matters
@@ -12,17 +16,19 @@ NVD records the F5 description: an unauthenticated attacker may trigger the issu
 
 ## Exposure Triage
 
-Defenders should answer four questions before treating an NGINX deployment as exposed:
+Defenders should answer four questions before treating an NGINX deployment as exposed. Put simply: first confirm the version, then confirm whether the risky config pattern is actually present.
 
 1. Is the running NGINX binary in an affected upstream range, accounting for distro backports?
 2. Does the active configuration use `map` with regex entries?
 3. Do mapped regex captures feed later string expressions in an order that can change between length and copy phases?
 4. Are suspicious worker restarts, crash loops, or the fixed-build error signal `no buffer space in script copy` visible in logs?
 
+If those words are new: a worker is the NGINX process handling requests. A crash loop or restart signal means the process may be failing and starting again. A distro backport means Linux vendors sometimes patch an older-looking version without changing the version number to the newest upstream release.
+
 ## Repository Contents
 
 - `scripts/audit_nginx_map_risk.py`  
-  A defensive heuristic scanner for NGINX config files. It looks for regex `map` blocks, captures, and later string expressions that reference captures and map outputs.
+  A defensive heuristic scanner for NGINX config files. It looks for regex `map` blocks, captures, and later string expressions that reference captures and map outputs. It does not prove a server is exploitable. It finds configs worth a human review.
 
 - `detections/splunk_nginx_cve_2026_42533.spl`  
   Splunk searches for version inventory, crash/restart symptoms, and post-patch diagnostic strings.
@@ -64,6 +70,8 @@ powershell -ExecutionPolicy Bypass -File .\lab\windows-nginx-validation.ps1
 ## Notes For Interview Discussion
 
 This is a good example of why vulnerability management is not only "is version less than fixed version." A version check finds candidate exposure, but the real risk depends on active configuration, reachable request paths, process hardening, and whether the patched workers are actually in memory.
+
+The simple way I would explain it in an interview: NGINX is like traffic control for a website. This bug is tied to a specific traffic-control rule pattern. My project checks whether that pattern exists, shows how to validate a patched build, and gives defenders log searches to look for symptoms. It is not an exploit project. It is a safe exposure-review and detection project.
 
 ## Sources
 
