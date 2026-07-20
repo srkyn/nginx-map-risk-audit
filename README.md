@@ -36,6 +36,9 @@ If those words are new: a worker is the NGINX process handling requests. A crash
 - `detections/defender_hunting_notes.kql`  
   Microsoft Defender hunting notes for Linux hosts where NGINX logs and process activity are collected.
 
+- `detections/sigma_nginx_worker_restart_symptoms.yml`  
+  Sigma hunting rule for NGINX worker restart or crash symptoms. It is a lead for review, not proof of exploitation.
+
 - `samples/nginx_map_patterns.conf`  
   Safe, schematic config examples for explaining the risk pattern. These are not exploit payloads.
 
@@ -55,6 +58,7 @@ Current local validation is stored in `evidence/`. The Windows quickstart runs t
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\lab\windows-quickstart.ps1
 powershell -ExecutionPolicy Bypass -File .\lab\windows-nginx-validation.ps1
+python .\scripts\self_check.py
 ```
 
 ## Defensive Workflow

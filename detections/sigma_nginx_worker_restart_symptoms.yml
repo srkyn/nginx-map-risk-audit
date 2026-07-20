@@ -1,0 +1,33 @@
+title: NGINX Worker Restart Or Crash Symptoms
+id: 8c6b6a1f-4ff4-4c55-a83e-6b4f2f42a533
+status: experimental
+description: Detects repeated NGINX worker crash or restart messages that may justify review during CVE-2026-42533 exposure triage. This is symptom hunting, not proof of exploitation.
+author: David Sarkisyan
+date: 2026-07-19
+references:
+  - https://nginx.org/en/security_advisories.html
+  - https://nginx.org/en/CHANGES
+  - https://nvd.nist.gov/vuln/detail/CVE-2026-42533
+tags:
+  - attack.impact
+  - detection.threat_hunting
+logsource:
+  product: linux
+  service: syslog
+detection:
+  selection_nginx:
+    - message|contains: 'nginx'
+    - message|contains: 'nginx: worker'
+  selection_crash:
+    message|contains:
+      - 'worker process'
+      - 'exited on signal'
+      - 'segmentation fault'
+      - 'core dumped'
+      - 'signal 11'
+  condition: selection_nginx and selection_crash
+falsepositives:
+  - Administrator restart or reload activity
+  - Package upgrades and service maintenance
+  - Unrelated NGINX module or configuration failures
+level: medium
