@@ -42,6 +42,9 @@ If those words are new: a worker is the NGINX process handling requests. A crash
 - `samples/nginx_map_patterns.conf`  
   Safe, schematic config examples for explaining the risk pattern. These are not exploit payloads.
 
+- `SECURITY.md`  
+  Scope note for the repository. This keeps the project clearly defensive and safe to review.
+
 - `lab/windows-quickstart.ps1`  
   Windows-friendly evidence runner that executes the scanner and saves output under `evidence/`.
 
